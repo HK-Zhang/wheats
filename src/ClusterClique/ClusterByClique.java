@@ -1,7 +1,12 @@
 package ClusterClique;
 
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import Test.ThreadDemo.MyThreadDemo;
 
 import java.io.*;
 
@@ -118,21 +123,53 @@ public class ClusterByClique {
 	}// read() end
 
 	private void prepareCell() {
-		FieldSet fs = null;
+		/*FieldSet fs = null;
 		while ((fs = CellCoordinator.GetInstance().FieldSetQueue.poll()) != null) {
 			Facet rstFacet = fs.SetupFacet();
 			ClusterCoordinator.GetInstance().FacetQueue.offer(rstFacet);
-		}
+		}*/
+		
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(5,5, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		 for(int i=0; i<5; i++) { 
+	            executor.execute(new PrepareCellTask()); 
+	        } 
+		 
+		 executor.shutdown(); 
+		 
+	        try { 
+	            boolean loop = true; 
+	            do {    //等待所有任务完成 
+	                loop = !executor.awaitTermination(2, TimeUnit.SECONDS); 
+	            } while(loop); 
+	        } catch (InterruptedException e) { 
+	            e.printStackTrace(); 
+	        } 
 	}
 
 	private void MergeCell() {
 
-		FacetSet fs = null;
+		/*FacetSet fs = null;
 
 		while ((fs = ClusterCoordinator.GetInstance().FacetSetQueue.poll()) != null) {
 			Facet rstFacet = fs.GetCommonFacet();
 			ClusterCoordinator.GetInstance().FacetQueue.offer(rstFacet);
-		}
+		}*/
+		
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(5,5, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		 for(int i=0; i<5; i++) { 
+	            executor.execute(new MergeCellTask()); 
+	        } 
+		 
+		 executor.shutdown(); 
+		 
+	        try { 
+	            boolean loop = true; 
+	            do {    //等待所有任务完成 
+	                loop = !executor.awaitTermination(2, TimeUnit.SECONDS); 
+	            } while(loop); 
+	        } catch (InterruptedException e) { 
+	            e.printStackTrace(); 
+	        } 
 
 	}
 
